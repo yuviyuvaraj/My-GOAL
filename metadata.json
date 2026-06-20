@@ -1,0 +1,6 @@
+{
+  "name": "My Goals",
+  "description": "An Android Material 3 goals and notes tracking app with calendar visualization, custom reminders, and offline state persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

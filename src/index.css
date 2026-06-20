@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@variant dark (.dark &);
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Material Design 3 Palette Colors & Clean Minimalism Token Mapping */
+  --color-m3-primary-light: #6750A4;
+  --color-m3-on-primary-light: #FFFFFF;
+  --color-m3-primary-container-light: #EADDFF;
+  --color-m3-on-primary-container-light: #21005D;
+  
+  --color-m3-primary-dark: #D0BCFF;
+  --color-m3-on-primary-dark: #381E72;
+  --color-m3-primary-container-dark: #4F378B;
+  --color-m3-on-primary-container-dark: #EADDFF;
+
+  --color-m3-surface-light: #F8F9FA;
+  --color-m3-on-surface-light: #1C1B1F;
+  --color-m3-surface-variant-light: #E0E2E6;
+  --color-m3-on-surface-variant-light: #49454F;
+
+  --color-m3-surface-dark: #0F1012;
+  --color-m3-on-surface-dark: #E6E1E5;
+  --color-m3-surface-variant-dark: #2E3036;
+  --color-m3-on-surface-variant-dark: #C2C6CD;
+
+  --color-m3-accent-green: #006E1C;
+  --color-m3-accent-yellow: #625B39;
+  --color-m3-accent-red: #B52F24;
+
+  /* Clean Minimalism Color Overrides */
+  --color-stone-50: #FFFFFF;
+  --color-stone-100: #F8F9FA;
+  --color-stone-200: #E0E2E6;
+  --color-stone-300: #D1D5DB;
+  --color-stone-400: #8E9199;
+  --color-stone-500: #74777F;
+  --color-stone-600: #5C5E66;
+  --color-stone-700: #44474E;
+  --color-stone-800: #2E3036;
+  --color-stone-850: #1C1B1F;
+  --color-stone-900: #141218;
+  --color-stone-1000: #0F1012;
+  --color-stone-950: #0F1012;
+
+  --color-purple-50: #FDF7FF;
+  --color-purple-100: #F3F1FA;
+  --color-purple-200: #EADDFF;
+  --color-purple-300: #D0BCFF;
+  --color-purple-400: #B59CFF;
+  --color-purple-500: #8C66FF;
+  --color-purple-600: #6750A4;
+  --color-purple-700: #4F378B;
+  --color-purple-800: #381E72;
+  --color-purple-900: #21005D;
+  --color-purple-950: #140038;
+
+  --color-emerald-100: #C8F1CC;
+  --color-emerald-500: #006E1C;
+  --color-emerald-600: #006E1C;
+  --color-emerald-700: #004F12;
+
+  --color-amber-100: #FEF7DA;
+  --color-amber-500: #625B39;
+  --color-amber-600: #625B39;
+}
+
+/* Base resets & styled scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+/* Interactive long press utility disable text select on cards */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
