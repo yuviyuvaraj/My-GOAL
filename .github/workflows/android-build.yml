@@ -1,0 +1,121 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Sign Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm ci || npm install
+
+      - name: Build Web Application assets
+        run: |
+          npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Sync Web Assets to Capacitor Android
+        run: |
+          npx cap sync android
+
+      - name: Build Android App (Debug & Release)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug assembleRelease
+
+      - name: Sign Release APK
+        run: |
+          # 1. Locate the Android SDK Build Tools directory
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
+          echo "Using Android Build Tools from: $BUILD_TOOLS_DIR"
+          
+          # 2. Locate the unsigned release APK
+          UNSIGNED_APK=$(find android/app/build/outputs/apk/release -name "*unsigned.apk" -o -name "*release.apk" | head -n 1)
+          if [ -z "$UNSIGNED_APK" ]; then
+            echo "Error: Unsigned release APK could not be found."
+            exit 1
+          fi
+          echo "Found unsigned release APK at: $UNSIGNED_APK"
+          
+          # 3. Align the APK
+          $BUILD_TOOLS_DIR/zipalign -v -f 4 "$UNSIGNED_APK" android/app/build/outputs/apk/release/app-release-aligned.apk
+          
+          # 4. Sign the aligned APK
+          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "--------------------------------------------------------"
+            echo "🚨 No KEYSTORE_BASE64 GitHub Secret detected."
+            echo "Generating an automatic temporary self-signed keystore..."
+            echo "--------------------------------------------------------"
+            
+            keytool -genkey -v -keystore release.keystore -alias release-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "android" -keypass "android" -dname "CN=MyGoals App, OU=Mobile, O=MyGoals, L=Tech, S=State, C=US"
+            
+            $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:"android" --key-pass pass:"android" --ks-key-alias "release-alias" --out android/app/build/outputs/apk/release/MyGoals-release-signed.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          else
+            echo "--------------------------------------------------------"
+            echo "🔑 KEYSTORE_BASE64 GitHub Secret detected. Signing..."
+            echo "--------------------------------------------------------"
+            
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+            
+            # Use fallback or standard password params
+            STORE_PASS="${{ secrets.KEYSTORE_PASSWORD }}"
+            KEY_PASS="${{ secrets.KEY_PASSWORD }}"
+            ALIAS="${{ secrets.KEYSTORE_ALIAS }}"
+            
+            $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:"$STORE_PASS" --key-pass pass:"$KEY_PASS" --ks-key-alias "$ALIAS" --out android/app/build/outputs/apk/release/MyGoals-release-signed.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          fi
+          
+          # Verify the signed APK
+          $BUILD_TOOLS_DIR/apksigner verify android/app/build/outputs/apk/release/MyGoals-release-signed.apk
+
+      - name: Prepare Debug APK name
+        run: |
+          DEBUG_APK=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          if [ -n "$DEBUG_APK" ]; then
+            cp "$DEBUG_APK" android/app/build/outputs/apk/debug/MyGoals-debug.apk
+            echo "Debug APK is ready: MyGoals-debug.apk"
+          fi
+
+      - name: Upload Signed Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyGoals-Android-Release-APK
+          path: android/app/build/outputs/apk/release/MyGoals-release-signed.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyGoals-Android-Debug-APK
+          path: android/app/build/outputs/apk/debug/MyGoals-debug.apk
+          if-no-files-found: ignore
+          retention-days: 7
